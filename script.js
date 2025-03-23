@@ -85,3 +85,97 @@ exportPdfBtn.addEventListener('click', function () {
   // Save PDF
   doc.save('price-list.pdf');
 });
+
+// Export to Excel Button
+const exportExcelBtn = document.getElementById('exportExcelBtn');
+
+exportExcelBtn.addEventListener('click', function () {
+  // Convert the products array to a worksheet
+  const worksheetData = [
+    ['No.', 'Product Name', 'Volume', 'Variant', 'Brand', 'Price (Rp)', 'Reseller Price (Rp)'],
+    ...products.map((product) => [
+      product.no,
+      product.productName,
+      product.volume,
+      product.variant,
+      product.brand,
+      `Rp ${product.price}`,
+      `Rp ${product.resellerPrice}`,
+    ]),
+  ];
+
+  // Create a worksheet
+  const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+
+  // Create a workbook and append the worksheet
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Price List');
+
+  // Export the workbook as an Excel file
+  XLSX.writeFile(workbook, 'price-list.xlsx');
+});
+
+// Export to Word Button
+const exportWordBtn = document.getElementById('exportWordBtn');
+
+exportWordBtn.addEventListener('click', function () {
+  // Create a Word document content
+  const wordContent = `
+    <html xmlns:o="urn:schemas-microsoft-com:office:office"
+          xmlns:w="urn:schemas-microsoft-com:office:word"
+          xmlns="http://www.w3.org/TR/REC-html40">
+    <head>
+      <meta charset="UTF-8">
+      <title>Price List</title>
+    </head>
+    <body>
+      <h1>Price List</h1>
+      <table border="1" cellpadding="5" cellspacing="0">
+        <thead>
+          <tr>
+            <th>No.</th>
+            <th>Product Name</th>
+            <th>Volume</th>
+            <th>Variant</th>
+            <th>Brand</th>
+            <th>Price (Rp)</th>
+            <th>Reseller Price (Rp)</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${products
+            .map(
+              (product) => `
+                <tr>
+                  <td>${product.no}</td>
+                  <td>${product.productName}</td>
+                  <td>${product.volume}</td>
+                  <td>${product.variant}</td>
+                  <td>${product.brand}</td>
+                  <td>Rp ${product.price}</td>
+                  <td>Rp ${product.resellerPrice}</td>
+                </tr>
+              `
+            )
+            .join('')}
+        </tbody>
+      </table>
+    </body>
+    </html>
+  `;
+
+  // Create a Blob with the Word content
+  const blob = new Blob(['\ufeff', wordContent], {
+    type: 'application/msword',
+  });
+
+  // Create a download link
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'price-list.doc';
+  a.click();
+
+  // Clean up
+  URL.revokeObjectURL(url);
+});
